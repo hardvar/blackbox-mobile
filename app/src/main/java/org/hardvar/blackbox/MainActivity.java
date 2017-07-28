@@ -6,10 +6,12 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -62,10 +64,8 @@ public class MainActivity extends AppCompatActivity {
 
     private StringBuilder recDataString = new StringBuilder();
 
-    private AdapterView.OnItemClickListener myListClickListener = new AdapterView.OnItemClickListener()
-    {
-        public void onItemClick (AdapterView av, View v, int arg2, long arg3)
-        {
+    private AdapterView.OnItemClickListener myListClickListener = new AdapterView.OnItemClickListener() {
+        public void onItemClick(AdapterView av, View v, int arg2, long arg3) {
             // Get the device MAC address, the last 17 chars in the View
             String info = ((TextView) v).getText().toString();
             arduinoMACAddress = info.substring(info.length() - 17);
@@ -79,9 +79,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        pairButton = (Button)findViewById(R.id.pairButton);
-        deviceList = (ListView)findViewById(R.id.deviceListView);
-        receivedData = (TextView)findViewById(R.id.arduinoDataTextView);
+        pairButton = (Button) findViewById(R.id.pairButton);
+        deviceList = (ListView) findViewById(R.id.deviceListView);
+        receivedData = (TextView) findViewById(R.id.arduinoDataTextView);
 
         if (isLauncherIconVisible()) {
             hideLauncherIcon();
@@ -101,10 +101,10 @@ public class MainActivity extends AppCompatActivity {
                     recDataString.append(readMessage);                                     //keep appending to string until ~
                     System.out.println(recDataString);
                     if (recDataString.charAt(0) == '#' && !isRecording) {
-                            System.out.println("Recording");
-                            isRecording = true;
-                            startRecording();
-                            new android.os.Handler().postDelayed(
+                        System.out.println("Recording");
+                        isRecording = true;
+                        startRecording();
+                        new android.os.Handler().postDelayed(
                                 new Runnable() {
                                     public void run() {
                                         if (isRecording) {
@@ -114,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
                                             mRecorder.reset();
                                             mRecorder.release();
                                             mRecorder = null;
+                                            callReliableNumber();
                                         }
                                     }
                                 }, 3000);
@@ -131,10 +132,11 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Bluetooth Device Not Available", Toast.LENGTH_LONG).show();
             finish();
         } else {
-            if (bluetoothAdapter.isEnabled()) {} else {
+            if (bluetoothAdapter.isEnabled()) {
+            } else {
                 //Ask to the user turn the bluetooth on
                 Intent turnBTon = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(turnBTon,1);
+                startActivityForResult(turnBTon, 1);
             }
         }
     }
@@ -143,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
         pairedDevices = bluetoothAdapter.getBondedDevices();
         ArrayList list = new ArrayList();
 
-        if (pairedDevices.size()>0) {
+        if (pairedDevices.size() > 0) {
             for (BluetoothDevice bt : pairedDevices) {
                 list.add(bt.getName() + "\n" + bt.getAddress()); //Get the device's name and the address
             }
@@ -151,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "No Paired Bluetooth Devices Found.", Toast.LENGTH_LONG).show();
         }
 
-        final ArrayAdapter adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1, list);
+        final ArrayAdapter adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, list);
         deviceList.setAdapter(adapter);
         deviceList.setOnItemClickListener(myListClickListener); //Method called when the device from the list is clicked
     }
@@ -179,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
 
     private BluetoothSocket createBluetoothSocket(BluetoothDevice device) throws IOException {
         //creates a secure outgoing connection with BT device using UUID
-        return  device.createRfcommSocketToServiceRecord(BTMODULEUUID);
+        return device.createRfcommSocketToServiceRecord(BTMODULEUUID);
     }
 
     private void listenBluetooth() {
@@ -232,6 +234,23 @@ public class MainActivity extends AppCompatActivity {
             }
             mRecorder.start();
         }
+    }
+
+    private void callReliableNumber() {
+        Intent intent = new Intent(Intent.ACTION_CALL);
+
+        intent.setData(Uri.parse("tel:60714317"));
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        getApplicationContext().startActivity(intent);
     }
 
 
