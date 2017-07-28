@@ -45,7 +45,6 @@ public class MainActivity extends AppCompatActivity {
 
     private Button pairButton;
     private ListView deviceList;
-    private TextView receivedData;
 
     private BluetoothAdapter bluetoothAdapter = null;
     private Set<BluetoothDevice> pairedDevices;
@@ -85,7 +84,6 @@ public class MainActivity extends AppCompatActivity {
 
         pairButton = (Button) findViewById(R.id.pairButton);
         deviceList = (ListView) findViewById(R.id.deviceListView);
-        receivedData = (TextView) findViewById(R.id.arduinoDataTextView);
 
         if (isLauncherIconVisible()) {
             hideLauncherIcon();
@@ -101,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
 
         bluetoothIn = new Handler() {
             public void handleMessage(Message msg) {
+                System.out.println(msg);
                 if (msg.what == handlerState) {                                     //if message is what we want
                     String readMessage = (String) msg.obj;                                                                // msg.arg1 = bytes from connect thread
                     recDataString.append(readMessage);                                     //keep appending to string until ~
@@ -128,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
                                             }
                                         }
                                     }
-                                }, 3000);
+                                }, 10000);
                         //}
                     }
                     recDataString.delete(0, recDataString.length());                    //clear all string data
@@ -215,6 +214,7 @@ public class MainActivity extends AppCompatActivity {
                     //insert code to deal with this
                 }
             }
+            System.out.println("Connection successful");
             mConnectedThread = new ConnectedThread(btSocket);
             mConnectedThread.start();
 
@@ -247,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
     private void callReliableNumber() {
         Intent intent = new Intent(Intent.ACTION_CALL);
 
-        intent.setData(Uri.parse("tel:70385155"));
+        intent.setData(Uri.parse("tel:60714317"));
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -272,7 +272,7 @@ public class MainActivity extends AppCompatActivity {
         Intent sharingIntent = new Intent(Intent.ACTION_SEND);
         sharingIntent.setType("audio/*");
         sharingIntent.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName() + ".org.hardvar.provider", new File(filename)));
-        sharingIntent.putExtra("jid", "59170385155" + "@s.whatsapp.net"); //phone number without "+" prefix
+        sharingIntent.putExtra("jid", "59160714317" + "@s.whatsapp.net"); //phone number without "+" prefix
         sharingIntent.setPackage("com.whatsapp");
         startActivity(sharingIntent);
     }

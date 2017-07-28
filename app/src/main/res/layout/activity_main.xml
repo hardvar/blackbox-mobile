@@ -1,18 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="org.hardvar.blackbox.MainActivity">
-
-    <GridLayout
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        tools:layout_editor_absoluteY="8dp"
-        tools:layout_editor_absoluteX="8dp">
-
-    </GridLayout>
 
     <Button
         android:id="@+id/pairButton"
@@ -24,16 +17,10 @@
 
     <ListView
         android:id="@+id/deviceListView"
-        android:layout_width="132dp"
-        android:layout_height="495dp"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
         tools:layout_editor_absoluteX="629dp"
         tools:layout_editor_absoluteY="26dp" />
 
-    <TextView
-        android:id="@+id/arduinoDataTextView"
-        android:layout_width="57dp"
-        android:layout_height="16dp"
-        tools:layout_editor_absoluteX="253dp"
-        tools:layout_editor_absoluteY="102dp" />
 
-</android.support.constraint.ConstraintLayout>
+</LinearLayout>
