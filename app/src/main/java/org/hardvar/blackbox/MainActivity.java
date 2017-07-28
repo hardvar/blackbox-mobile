@@ -11,12 +11,15 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.MediaRecorder;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -26,6 +29,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -86,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
         if (isLauncherIconVisible()) {
             hideLauncherIcon();
         }
+
         checkBluetoothStatus();
         pairButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -103,7 +108,9 @@ public class MainActivity extends AppCompatActivity {
                     if (recDataString.charAt(0) == '#' && !isRecording) {
                         System.out.println("Recording");
                         isRecording = true;
-                        startRecording();
+                        mFileName = Environment.getExternalStorageDirectory().getAbsolutePath();
+                        mFileName += "/blackbox-" + new Date().toString() + ".m4a";
+                        startRecording(mFileName);
                         new android.os.Handler().postDelayed(
                                 new Runnable() {
                                     public void run() {
@@ -114,7 +121,11 @@ public class MainActivity extends AppCompatActivity {
                                             mRecorder.reset();
                                             mRecorder.release();
                                             mRecorder = null;
-                                            callReliableNumber();
+                                            if (isOnline()) {
+                                                sendWhatsAppMessage(mFileName);
+                                            } else {
+                                                callReliableNumber();
+                                            }
                                         }
                                     }
                                 }, 3000);
@@ -213,18 +224,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void startRecording() {
+    private void startRecording(String filename) {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO},
                     0);
         } else {
-            mFileName = Environment.getExternalStorageDirectory().getAbsolutePath();
-            mFileName += "/blackbox-" + new Date().toString() + ".m4a";
-            System.out.println(mFileName);
             mRecorder = new MediaRecorder();
             mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-            mRecorder.setOutputFile(mFileName);
+            mRecorder.setOutputFile(filename);
             mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
             try {
@@ -239,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
     private void callReliableNumber() {
         Intent intent = new Intent(Intent.ACTION_CALL);
 
-        intent.setData(Uri.parse("tel:60714317"));
+        intent.setData(Uri.parse("tel:70385155"));
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -251,6 +259,22 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         getApplicationContext().startActivity(intent);
+    }
+
+    private boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
+
+    private void sendWhatsAppMessage(String filename) {
+        Intent sharingIntent = new Intent(Intent.ACTION_SEND);
+        sharingIntent.setType("audio/*");
+        sharingIntent.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName() + ".org.hardvar.provider", new File(filename)));
+        sharingIntent.putExtra("jid", "59170385155" + "@s.whatsapp.net"); //phone number without "+" prefix
+        sharingIntent.setPackage("com.whatsapp");
+        startActivity(sharingIntent);
     }
 
 
